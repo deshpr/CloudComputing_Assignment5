@@ -10,19 +10,52 @@ package lambda;
  * @author wlloyd
  */
 public class Request {
-    String name;
-    public String getName()
+
+    
+     String bucketname;
+    public String getBucketname()
     {
-        return name;
+        return bucketname;
     }
-    public void setName(String name)
+    
+    public void setBucketname(String bucketName)
     {
-        this.name = name;
+        this.bucketname = bucketName;
     }
-    public Request(String name)
+    
+         String filename;
+    public String getFilename()
     {
-        this.name = name;
+        return filename;
     }
+    
+    public void setFilename(String filename)
+    {
+        this.filename = filename;
+    }
+    
+    private int row;
+    public void setRow(int row)
+    {
+        this.row = row;
+    }
+    public int getRow()
+    {
+        return row;
+    }
+    
+    
+        private int col;
+    public void setCol(int col)
+    {
+        this.col = col;
+    }
+    public int getCol()
+    {
+        return col;
+    }
+    
+
     public Request()
     {
         

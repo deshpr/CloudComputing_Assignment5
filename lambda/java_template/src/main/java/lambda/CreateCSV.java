@@ -10,13 +10,22 @@ import com.amazonaws.services.lambda.runtime.CognitoIdentity;
 import com.amazonaws.services.lambda.runtime.Context; 
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import faasinspector.register;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Random;
+
 /**
  * uwt.lambda_test::handleRequest
  * @author wlloyd
  */
-public class Hello implements RequestHandler<Request, Response>
+public class CreateCSV implements RequestHandler<Request, Response>
 {
     static String CONTAINER_ID = "/tmp/container-id";
     static Charset CHARSET = Charset.forName("US-ASCII");
@@ -30,21 +39,53 @@ public class Hello implements RequestHandler<Request, Response>
         // Register function
         register reg = new register(logger);
 
-        //stamp container with uuid
+        int row = request.getRow();
+        int col = request.getCol();
+        
+        String bucketname = request.getBucketname();
+        String filename = request.getFilename();
+        
+        
+        
+          int val = 0;
+        StringWriter sw = new StringWriter();
+        Random rand = new Random();
+        
+        for (int i=0;i<row;i++)
+            for (int j=0;j<col;j++)
+            {
+                val = rand.nextInt(1000);
+                sw.append(Integer.toString(val));
+                if ((j+1)!=col)
+                    sw.append(",");
+                else
+                    sw.append("\n");
+            }
+
+        byte[] bytes = sw.toString().getBytes(StandardCharsets.UTF_8);
+        
+        
+
+        
+        
+        InputStream is = new ByteArrayInputStream(bytes);
+        ObjectMetadata meta = new ObjectMetadata();
+meta.setContentLength(bytes.length);
+meta.setContentType("text/plain");
+// Create new file on S3
+AmazonS3 s3Client = AmazonS3ClientBuilder.standard().build();
+s3Client.putObject(bucketname, filename, is, meta);
+        
+        
+                  //stamp container with uuid
         Response r = reg.StampContainer();
         
-        // *********************************************************************
-        // Implement Lambda Function Here
-        // *********************************************************************
-        String hello = "Hello " + request.getName();
+        r.setValue("Bucket:" + bucketname + " filename:" + filename + " size:" + 
+bytes.length);
 
-        //Print log information to the Lambda log as needed
-        //logger.log("log message...");
-        
-        // Set return result in Response class, class is marshalled into JSON
-        r.setValue(hello);
         
         return r;
+      
     }
     
     // int main enables testing function from cmd line
@@ -113,19 +154,19 @@ public class Hello implements RequestHandler<Request, Response>
         };
         
         // Create an instance of the class
-        Hello lt = new Hello();
-        
-        // Create a request object
-        Request req = new Request();
-        
-        // Grab the name from the cmdline from arg 0
-        String name = (args.length > 0 ? args[0] : "");
+        CreateCSV lt = new CreateCSV();
         
         // Load the name into the request object
-        req.setName(name);
-
         // Report name to stdout
-        System.out.println("cmd-line param name=" + req.getName());
+        Request req = new Request();
+        req.setBucketname(args[0]);
+        req.setBucketname(args[1]);
+        req.setBucketname(args[2]);
+        req.setBucketname(args[3]);
+        
+        
+        // Load the name into the request object
+        // Report name to stdout
         
         // Run the function
         Response resp = lt.handleRequest(req, c);
